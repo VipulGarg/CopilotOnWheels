@@ -5,6 +5,8 @@ RPi.GPIO==0.7.1
 # Azure AI services
 openai==1.35.0
 azure-cognitiveservices-speech==1.30.0
+azure-cognitiveservices-vision-computervision==0.9.0
+msrest==0.7.1
 
 # Text-to-speech
 pyttsx3==2.90

@@ -22,11 +22,12 @@ class RobotTTS:
             self.engine = None
     
     def _setup_logging(self):
-        """Setup logging for TTS module"""
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s'
-        )
+        """Setup logging for TTS module (no handlers here - main config handles stdout)
+        This avoids duplicate StreamHandlers when modules call basicConfig.
+        """
+        # Use module logger and respect root configuration done in main
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
     
     def setup_voice(self):
         """Configure voice properties"""

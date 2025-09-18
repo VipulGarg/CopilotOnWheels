@@ -26,7 +26,7 @@ class RobotCamera:
     
     def __init__(self, width: int = 640, height: int = 480):
         """
-        Initialize camera
+        Initialize camera   
         
         Args:
             width: Image width
@@ -73,9 +73,27 @@ class RobotCamera:
             self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
             self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
             
+            # Configure camera for minimal buffering to reduce latency
+            self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            
+            # Set FPS if supported (lower FPS can help with buffer issues)
+            self.camera.set(cv2.CAP_PROP_FPS, 15)
+            
+            # Give the USB camera time to warm up and flush initial frames from buffer
+            time.sleep(2)
+            for _ in range(5):
+                try:
+                    ret, _ = self.camera.read()
+                except Exception:
+                    ret = False
+                if not ret:
+                    # small delay before trying again
+                    time.sleep(0.1)
+            
             self.camera_type = "USB"
             self.is_initialized = True
             logging.info("USB camera initialized successfully")
+            print ("here")
             
         except Exception as e:
             logging.error(f"USB camera initialization failed: {e}")
@@ -98,13 +116,21 @@ class RobotCamera:
             if self.camera_type == "PiCamera2":
                 # Capture with PiCamera2
                 frame = self.camera.capture_array()
-                # Convert BGR to RGB if needed
+                # Picamera2 returns RGB arrays; convert to BGR for OpenCV consistency
                 if len(frame.shape) == 3 and frame.shape[2] == 3:
-                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                 return frame
                 
             elif self.camera_type == "USB":
                 # Capture with USB camera
+                # For USB cameras, we need to flush the buffer to get the most recent frame
+                # Read and discard several frames to clear the buffer, then capture the fresh one
+                for _ in range(3):
+                    ret, _ = self.camera.read()
+                    if not ret:
+                        break
+                
+                # Now capture the actual frame we want to return
                 ret, frame = self.camera.read()
                 if ret:
                     return frame

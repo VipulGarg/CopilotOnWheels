@@ -5,3 +5,4 @@ src/vision/__pycache__/
 yolov4-tiny.cfg
 yolov4-tiny.weights
 yolov8n.pt
+*.jpg

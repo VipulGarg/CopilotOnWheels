@@ -2,20 +2,29 @@ import speech_recognition as sr
 import RPi.GPIO as GPIO
 import time
 import logging
+import sys
 from robot_ai import RobotAI
 from robot_tts import RobotTTS, create_movement_speech, create_error_speech, create_greeting_speech
 from vision.navigation import VisionNavigationSystem
+from vision.config import vision_config
 from dotenv import load_dotenv
 import os
 
 # Load environment variables
 load_dotenv()
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+# Setup centralized logging to print to command line (stdout)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# Create stream handler to stdout with a clear formatter
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+stream_handler.setFormatter(formatter)
+
+# Replace existing handlers to ensure logs go to stdout once
+logger.handlers = [stream_handler]
 
 # -------------------------------
 # GPIO Pin Configuration
@@ -71,6 +80,12 @@ def right():
 def setup_robot_services():
     """Initialize all robot services"""
     try:
+        # Log vision configuration
+        logging.info("Vision Configuration:")
+        logging.info(f"  Detection Method: {vision_config.detection_method}")
+        logging.info(f"  Azure Configured: {vision_config.is_azure_configured()}")
+        logging.info(f"  Recommended Method: {vision_config.get_recommended_method()}")
+        
         # Initialize AI service
         ai_service = RobotAI()
         logging.info("AI service initialized successfully")
@@ -79,16 +94,18 @@ def setup_robot_services():
         tts_service = RobotTTS()
         logging.info("TTS service initialized successfully")
         
-        # Initialize Vision Navigation System
-        vision_system = VisionNavigationSystem()
+        # Initialize Vision Navigation System with configured method
+        recommended_method = vision_config.get_recommended_method()
+        vision_system = VisionNavigationSystem(detection_method=recommended_method)
         if vision_system.is_initialized:
-            logging.info("Vision navigation system initialized successfully")
+            logging.info(f"Vision navigation system initialized successfully with {vision_system.detection_method} detection")
         else:
             logging.warning("Vision navigation system initialization failed")
         
         # Test TTS
         if tts_service.engine:
-            tts_service.speak("Robot services initialized successfully!", wait=True)
+            detection_msg = f"Using {vision_system.detection_method} detection" if vision_system.is_initialized else "Vision system unavailable"
+            tts_service.speak(f"Robot services initialized successfully! {detection_msg}", wait=True)
         
         return ai_service, tts_service, vision_system
     
@@ -117,7 +134,7 @@ def execute_movement_command(action: str, tts_service):
             movement_functions[action]()
             logging.info(f"Executed movement: {action}")
             
-            # Auto-stop after 2 seconds for safety (except for stop command)
+            # Auto-stop after 0.5 seconds for safety (except for stop command)
             if action != 'stop':
                 time.sleep(0.5)
                 stop()
@@ -147,9 +164,9 @@ def execute_vision_command(action: str, target_object: str, vision_system, tts_s
         
         # Create movement function references
         movement_functions = {
-            'forward': lambda duration=1: (forward(), time.sleep(duration)),
-            'left': lambda duration=1: (left(), time.sleep(duration)),
-            'right': lambda duration=1: (right(), time.sleep(duration)),
+            'forward': lambda duration=1: (forward(), time.sleep(duration), stop()),
+            'left': lambda duration=1: (left(), time.sleep(duration), stop()),
+            'right': lambda duration=1: (right(), time.sleep(duration), stop()),
             'stop': lambda: stop()
         }
         
