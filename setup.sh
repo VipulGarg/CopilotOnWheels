@@ -11,7 +11,7 @@ sudo apt update && sudo apt upgrade -y
 
 # Install system dependencies
 echo "🔧 Installing system dependencies..."
-sudo apt install -y python3-pip python3-venv portaudio19-dev python3-pyaudio espeak espeak-data libespeak1 libespeak-dev
+sudo apt install -y python3-pip python3-venv portaudio19-dev python3-pyaudio espeak espeak-data libespeak1 libespeak-dev libcap-dev
 
 # Create virtual environment
 echo "🐍 Creating Python virtual environment..."

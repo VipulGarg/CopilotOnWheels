@@ -34,10 +34,9 @@ A voice-controlled robot assistant that combines physical movement capabilities 
 ### 1. Clone and Setup
 
 ```bash
-git clone <your-repo>
-cd RobotDIY
-chmod +x setup.sh
-./setup.sh
+git clone <repo-url>
+cd CopilotOnWheels
+bash setup.sh
 ```
 
 ### 2. Configure Azure Credentials
@@ -53,8 +52,12 @@ AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4
 ### 3. Run the Robot
 
 ```bash
-source robot_env/bin/activate
-python3 main.py
+1. Edit .env file with your Azure OpenAI credentials
+2. Activate virtual environment: source robot_env/bin/activate
+3. sudo apt remove python3-rpi.gpio  # Only if on Raspberry Pi and not needed
+4. pip3 install rpi-lgpio pyaudio
+5. Run the robot: python3 src/main.py
+
 ```
 
 ## Usage

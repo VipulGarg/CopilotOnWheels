@@ -239,9 +239,6 @@ if tts_service:
 
 try:
     # Wake word loop
-
-try:
-    # Wake word loop
     while True:
         with mic as source:
             recognizer.adjust_for_ambient_noise(source)
