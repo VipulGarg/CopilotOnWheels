@@ -41,7 +41,7 @@ class RobotTTS:
             if voices:
                 for voice in voices:
                     if 'english' in voice.name.lower() or 'zira' in voice.name.lower():
-                        self.engine.setProperty('voice', voice.id)
+                        self.engine.setProperty('voice', 'english+f3')
                         break
                 else:
                     # If no female voice found, use the first available
@@ -51,7 +51,7 @@ class RobotTTS:
             self.engine.setProperty('rate', 160)  # Slightly faster than default
             
             # Set volume (0.0 to 1.0)
-            self.engine.setProperty('volume', 0.9)
+            self.engine.setProperty('volume', 0.8)
             
             logging.info("TTS voice configured successfully")
             
